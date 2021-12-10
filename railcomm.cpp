@@ -151,25 +151,7 @@ void RailComm::moveAbsolute(int mm) {
 
 //Private
 void RailComm::serialConnSendMessage() {
-    commands command = (commands)command_queue.head();
-
-    if (command == commands::MOVEHOME || command == commands::MOVEABSOLUTE) {
-        wait_for_move = true;
-    }
-
-    QByteArray data = getCommand(command).toUtf8();
-
-    if (containsData(command)) {
-        if (command == commands::SETECHO || command == commands::SETVERBOSITY) {
-            data += '=';
-        } else {
-            data += ' ';
-        }
-
-        data += data_queue.head().toUtf8();
-    }
-
-    data += '\n';
+    QByteArray data = constructMessage();
 
     qDebug() << "final data:" << data;
 
@@ -195,7 +177,6 @@ bool RailComm::containsData(commands command) {
         case commands::SETDECCELTIME:
         case commands::HOMESTATUS:
         case commands::MOVEABSOLUTE:
-        case commands::CONTROLLERREADY:
             return true;
     }
 
@@ -221,7 +202,7 @@ QString RailComm::getCommand(commands command) {
         case commands::SETDECCELTIME:
             return "TD";
         case commands::MOVEHOME:
-            return "MGH";
+            return "RUN HOME";
         case commands::HOMESTATUS:
             return "SIGHOMEP";
         case commands::MOVEABSOLUTE:
@@ -255,13 +236,65 @@ void RailComm::sendError(QSerialPort::SerialPortError error, const QString &erro
     }
 }
 
+QByteArray RailComm::constructMessage(bool regex) {
+    commands command = (commands)command_queue.head();
+
+    if (command == commands::MOVEHOME || command == commands::MOVEABSOLUTE) {
+        wait_for_move = true;
+    }
+
+    QByteArray data = getCommand(command).toUtf8();
+    qDebug() << command;
+    if (containsData(command)) {
+        if (command == commands::SETECHO || command == commands::SETVERBOSITY || regex == true) {
+            data += '=';
+        } else {
+            data += ' ';
+        }
+
+        data += data_queue.head().toUtf8();
+    }
+
+    data += '\n';
+
+    return data;
+}
+
 //Slots
 void RailComm::serialConnReceiveMessage() {
     // construct message from parts
     temp_data += serial_conn.readAll();
+    qDebug() << "New read";
+    qDebug() << temp_data;
 
     // regex matching all commands and SIGHOMEP or SIGREADY successful return
-    if(QRegExp(getCommand((commands)command_queue.head())).exactMatch(temp_data)) {
+    //MA has no return
+    //RUN HOME has no return
+
+    QString match_string = constructMessage();
+    if (containsData((commands)command_queue.head()) && (commands)command_queue.head() != MOVEABSOLUTE)
+        match_string = match_string + "\\s*" + constructMessage(true);
+
+    switch((commands)command_queue.head()) {
+        case SETSTARTVELOCITY:
+        case SETENDVELOCITY:
+            match_string += " " + user_unit + "/sec";
+    }
+
+    match_string += "\\s*>$";
+
+    match_string.prepend("^");
+    match_string.remove("\n");
+
+
+    QRegExp match_init_2 = QRegExp("^SIGREADY\\s*SIGREADY=1\\s*>$");
+    QRegExp match_init_3 = QRegExp("^SIGREADY\\s*SIGREADY=0\\s*>$");
+
+
+    qDebug() << match_string;
+    QRegExp match_init = QRegExp(match_string);
+    if(match_init.exactMatch(temp_data) || match_init_2.exactMatch(temp_data)) {
+        qDebug() << "matched";
         timer.stop();
         commands command = (commands)command_queue.dequeue();
 
@@ -270,8 +303,13 @@ void RailComm::serialConnReceiveMessage() {
             wait_for_move = false;
         }
 
-        if (containsData(command))
-            data_queue.dequeue();
+        if (containsData(command)) {
+            if (command == commands::SETUSERUNIT) {
+                user_unit = data_queue.dequeue();
+            } else {
+                data_queue.dequeue();
+            }
+        }
 
         emit returnData(temp_data, command);
 
@@ -283,9 +321,11 @@ void RailComm::serialConnReceiveMessage() {
         }
         // send another message when previous is finished if the move status does not need to be obtained
         else if (!command_queue.isEmpty()) {
+
             serialConnSendMessage();
         }
-    } else if (false) { //regex matching a status of 0 being returned from SIGHOMEP or SIGREADY
+    } else if (match_init_3.exactMatch(temp_data)) { //regex matching a status of 0 being returned from SIGHOMEP or SIGREADY
+        qDebug() << "matched2";
         timer.stop();
         commands command = (commands)command_queue.dequeue();
 
@@ -303,7 +343,7 @@ void RailComm::serialConnReceiveMessage() {
 void RailComm::sendPosStatusCommand() {
     if (wait_for_move == true) {
         if (status_command == commands::MOVEHOME) {
-            command_queue.prepend(commands::HOMESTATUS);
+            command_queue.prepend(commands::CONTROLLERREADY);
         } else if (status_command == commands::MOVEABSOLUTE) {
             command_queue.prepend(commands::CONTROLLERREADY);
         }

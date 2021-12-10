@@ -58,6 +58,6 @@ void SerialComm::collectErrorData(QSerialPort::SerialPortError error) {
 void SerialComm::timeout() {
     if (temp_data != "") {
         qDebug() << "Return data:" << temp_data;
-        sendError(QSerialPort::TimeoutError, "Timeout partial data");
+        //sendError(QSerialPort::TimeoutError, "Timeout partial data");
     }
 }

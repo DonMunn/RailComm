@@ -31,7 +31,9 @@ protected:
 private:
     QString getCommand(commands command); // Done
     bool containsData(commands command); // Done
+    QByteArray constructMessage(bool regex=false);
 
+    QString user_unit;
     bool wait_for_move = false;
     commands status_command;
     QTimer move_status_timer;

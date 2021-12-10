@@ -29,7 +29,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Motor Controls</string>
+          <string>Rail Controls</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>

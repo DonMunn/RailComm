@@ -162,7 +162,7 @@ void MainWindow::displayData(QString data, int command_sent) {
 
 void MainWindow::on_pushButtonInitialize_clicked() {
     o_serial->setEcho(1);
-    o_serial->setVerbosity(0);
+    o_serial->setVerbosity(1);
     o_serial->setUserUnit("mm");
     o_serial->setStartVelocity(10);
     o_serial->setEndVelocity(100);
