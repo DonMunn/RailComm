@@ -68,6 +68,13 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_3"/>
      </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonStartMessageTimer">
+       <property name="text">
+        <string>Start Message Timer</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>

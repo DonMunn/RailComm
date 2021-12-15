@@ -10,7 +10,7 @@ class RailComm : public SerialComm
     Q_OBJECT
 public:
     enum commands {NONE, SETECHO, SETVERBOSITY, SETUSERUNIT, SETSTARTVELOCITY, SETENDVELOCITY, SETACCELTIME,
-                   SETDECCELTIME, MOVEHOME, HOMESTATUS, MOVEABSOLUTE, CONTROLLERREADY};
+                   SETDECCELTIME, MOVEHOME, MOVEABSOLUTE, CONTROLLERREADY};
 
     explicit RailComm(QObject *parent = nullptr);
 
@@ -24,22 +24,20 @@ public:
     void moveHome();
     void moveAbsolute(int mm);
 
-protected:
+private:
     void sendError(QSerialPort::SerialPortError error, const QString &error_message) override; // Done
     void serialConnSendMessage() override; // Done
-
-private:
     QString getCommand(commands command); // Done
     bool containsData(commands command); // Done
-    QByteArray constructMessage(bool regex=false);
+    QByteArray constructMessage(bool regex=false); // Done
 
     QString user_unit;
     bool wait_for_move = false;
-    commands status_command;
     QTimer move_status_timer;
 
 private slots:
     void serialConnReceiveMessage() override; //Done TODO match regexes
+    void sendMessage() override;
     void sendPosStatusCommand(); // Done
 };
 

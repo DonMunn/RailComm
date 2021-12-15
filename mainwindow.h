@@ -90,6 +90,7 @@ private slots:
     void on_pushButtonInitialize_clicked();
     void on_pushButtonMoveHome_clicked();
     void on_pushButtonMoveAbsolute_clicked();
+    void on_pushButtonStartMessageTimer_clicked();
 
     void on_actionAbout_triggered();
 

@@ -178,6 +178,10 @@ void MainWindow::on_pushButtonMoveAbsolute_clicked() {
     o_serial->moveAbsolute(m_ui->spinBoxAbsoluteValue->value());
 }
 
+void MainWindow::on_pushButtonStartMessageTimer_clicked() {
+    o_serial->startSendMessageTimer();
+}
+
 void MainWindow::on_actionAbout_triggered()
 {
     about();
