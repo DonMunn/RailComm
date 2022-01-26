@@ -254,8 +254,10 @@ void RailComm::serialConnReceiveMessage() {
 
         if (command == commands::CONTROLLERREADY) {
             emit returnData(match_ready.cap(1), command);
-        } else {
+        } else if (match_string.contains('(')){
             emit returnData(match_return.cap(1), command);
+        } else {
+            emit returnData(temp_data, command);
         }
 
 
