@@ -58,7 +58,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="spinBoxAbsoluteValue"/>
+        <widget class="QSpinBox" name="spinBoxAbsoluteValue">
+         <property name="maximum">
+          <number>299</number>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
