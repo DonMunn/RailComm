@@ -189,7 +189,15 @@ QByteArray RailComm::constructMessage(bool regex) {
             data += ' ';
         }
 
+        if (regex) {
+            data += '(';
+        }
+
         data += data_queue.head().toUtf8();
+
+        if (regex) {
+            data += ')';
+        }
     }
 
     data += '\n';
@@ -224,8 +232,8 @@ void RailComm::serialConnReceiveMessage() {
     match_string.remove("\n");
 
     QRegExp match_return = QRegExp(match_string);
-    QRegExp match_ready = QRegExp("^SIGREADY\\s*SIGREADY=1\\s*>$");
-    QRegExp match_not_ready = QRegExp("^SIGREADY\\s*SIGREADY=0\\s*>$");
+    QRegExp match_ready = QRegExp("^SIGREADY\\s*SIGREADY=(1)\\s*>$");
+    QRegExp match_not_ready = QRegExp("^SIGREADY\\s*SIGREADY=(0)\\s*>$");
 
     if(match_return.exactMatch(temp_data) || match_ready.exactMatch(temp_data)) {
         timeout_timer.stop();
@@ -244,7 +252,12 @@ void RailComm::serialConnReceiveMessage() {
             }
         }
 
-        emit returnData(temp_data, command);
+        if (command == commands::CONTROLLERREADY) {
+            emit returnData(match_ready.cap(1), command);
+        } else {
+            emit returnData(match_return.cap(1), command);
+        }
+
 
         temp_data = "";
         // Start sending CONTROLLERREADY or HOMESTATUS commands
@@ -258,7 +271,7 @@ void RailComm::serialConnReceiveMessage() {
         if (containsData(command))
             data_queue.dequeue();
 
-        emit returnData(temp_data, command);
+        emit returnData(match_not_ready.cap(1), command);
 
         temp_data = "";
 
