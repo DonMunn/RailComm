@@ -201,7 +201,7 @@ QByteArray RailComm::constructMessage(bool regex) {
     }
 
     data += '\n';
-
+    if (!regex) qDebug() << command << data;
     return data;
 }
 
@@ -291,6 +291,7 @@ void RailComm::sendPosStatusCommand() {
 
 void RailComm::sendMessage() {
     if (isOpen() && !command_queue.isEmpty() && !timeout_timer.isActive() && !wait_for_move) {
+        qDebug() << "Queue size:" <command_queue.size();
         serialConnSendMessage();
     }
 }
